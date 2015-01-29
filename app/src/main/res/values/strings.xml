@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">XMPPApplication</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="host">chat.vaporchat.com</string>
+    <string name="port">5223</string>
+    <string name="title_activity_login">Login</string>
+
+</resources>
