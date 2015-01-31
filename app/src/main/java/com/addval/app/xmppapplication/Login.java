@@ -4,9 +4,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,6 +15,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 
 import java.lang.ref.WeakReference;
@@ -76,13 +78,23 @@ public class Login extends ActionBarActivity implements View.OnClickListener{
                 new LoginToXMPP().execute();
                 break;
             case R.id.btn_logout:
-                if (XMPPApplication.connection.isConnected()) {
-                    try {
-                        XMPPApplication.connection.disconnect();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (XMPPApplication.connection.isConnected()) {
+                            try {
+                                XMPPApplication.connection.disconnect();
+                                if (!XMPPApplication.connection.isConnected()) {
+                                    Log.e("Connection Status", " : Disconnected");
+                                    finish();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                }
+                });
+                t.start();
                 break;
             default:
                 break;

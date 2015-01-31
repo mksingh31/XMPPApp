@@ -8,12 +8,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.addval.app.xmppapplication.ssl.MemorizingTrustManager;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SASLAuthentication;
@@ -28,7 +31,6 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -93,13 +95,22 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 new ConnectAsync().execute();
                 break;
             case R.id.btn_disconnect:
-                if (XMPPApplication.connection.isConnected()) {
-                    try {
-                        XMPPApplication.connection.disconnect();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (XMPPApplication.connection.isConnected()) {
+                            try {
+                                XMPPApplication.connection.disconnect();
+                                if (!XMPPApplication.connection.isConnected()) {
+                                    Log.e("Connection Status", " : Disconnected");
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                }
+                });
+                t.start();
                 break;
             default:
                 break;
@@ -115,23 +126,29 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         XMPPApplication.configuration = new ConnectionConfiguration(txtHost.getText().toString()
                 , Integer.parseInt(txtPort.getText().toString()));
         XMPPApplication.configuration.setDebuggerEnabled(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             XMPPApplication.configuration.setKeystoreType("AndroidCAStore");
-            XMPPApplication.configuration.setKeystorePath(null);
-        } else {
-            XMPPApplication.configuration.setKeystoreType("BKS");
-            String path = System.getProperty("javax.net.ssl.trustStore");
-            if (path == null)
-                path = System.getProperty("java.home") + File.separator + "etc"
-                        + File.separator + "security" + File.separator
-                        + "cacerts.bks";
-            XMPPApplication.configuration.setKeystorePath(path);
-        }
-//        configuration.setCustomSSLContext(createContext());
-        SASLAuthentication.registerSASLMechanism("PLAIN", SASLPlainMechanism.class);
+            XMPPApplication.configuration.setTruststorePath(null);
+            XMPPApplication.configuration.setTruststorePassword(null);
+//        } else {
+//            XMPPApplication.configuration.setKeystoreType("BKS");
+//            String path = System.getProperty("javax.net.ssl.trustStore");
+//            if (path == null)
+////                path = System.getProperty("-Djavax.net.ssl.keyStore");
+//                path = System.getProperty("java.home") + File.separator + "etc"
+//                        + File.separator + "security" + File.separator
+//                        + "cacerts.bks";
+//            XMPPApplication.configuration.setKeystorePath(path);
+//        }
+//        XMPPApplication.configuration.setCustomSSLContext(createContext());
+//        SASLAuthentication.registerSASLMechanism("PLAIN", SASLPlainMechanism.class);
         SASLAuthentication.supportSASLMechanism("PLAIN");
         XMPPApplication.configuration.setRosterLoadedAtLogin(false);
+        XMPPApplication.configuration.setReconnectionAllowed(false);
+        XMPPApplication.configuration.setSASLAuthenticationEnabled(true);
+//        XMPPApplication.configuration.setSocketFactory(new DummySSLSocketFactory());
         XMPPApplication.configuration.setSecurityMode(ConnectionConfiguration.SecurityMode.enabled);
+//        XMPPApplication.configuration.setCompressionEnabled(true);
     }
     private void connectToServer () throws XMPPException, IOException {
         XMPPApplication.connection = new XMPPConnection(XMPPApplication.configuration);
@@ -175,18 +192,21 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
             });
         }
     }
-//    private SSLContext createContext() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
-//        KeyStore trustStore;
+    private SSLContext createContext() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+        KeyStore trustStore;
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-//            trustStore = KeyStore.getInstance("AndroidCAStore");
+            trustStore = KeyStore.getInstance("AndroidCAStore");
 //        } else {
 //            trustStore = KeyStore.getInstance("BKS");
 //        }
-//
-//        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-//        trustManagerFactory.init(trustStore);
-//        SSLContext sslContext = SSLContext.getInstance("TLS");
-//        sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
-//        return sslContext;
-//    }
+
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(trustStore);
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        MemorizingTrustManager mtm = new MemorizingTrustManager(this);
+        sslContext.init(null, trustManagerFactory.getTrustManagers(), new java.security.SecureRandom());
+//        XMPPApplication.configuration.setHostnameVerifier(
+//                mtm.wrapHostnameVerifier(new org.apache.http.conn.ssl.StrictHostnameVerifier()));
+        return sslContext;
+    }
 }

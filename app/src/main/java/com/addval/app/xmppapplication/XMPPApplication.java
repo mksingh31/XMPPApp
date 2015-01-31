@@ -4,6 +4,7 @@ import android.app.Application;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SmackAndroid;
+import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 
 /**
@@ -16,5 +17,6 @@ public class XMPPApplication extends Application {
     public void onCreate(){
         super.onCreate();
         SmackAndroid.init(getApplicationContext());
+        SmackConfiguration.setPacketReplyTimeout(50000);
     }
 }
