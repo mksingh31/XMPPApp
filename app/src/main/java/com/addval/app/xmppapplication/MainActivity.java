@@ -126,20 +126,19 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         XMPPApplication.configuration = new ConnectionConfiguration(txtHost.getText().toString()
                 , Integer.parseInt(txtPort.getText().toString()));
         XMPPApplication.configuration.setDebuggerEnabled(true);
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            XMPPApplication.configuration.setKeystoreType("AndroidCAStore");
-            XMPPApplication.configuration.setTruststorePath(null);
-            XMPPApplication.configuration.setTruststorePassword(null);
-//        } else {
-//            XMPPApplication.configuration.setKeystoreType("BKS");
-//            String path = System.getProperty("javax.net.ssl.trustStore");
-//            if (path == null)
-////                path = System.getProperty("-Djavax.net.ssl.keyStore");
-//                path = System.getProperty("java.home") + File.separator + "etc"
-//                        + File.separator + "security" + File.separator
-//                        + "cacerts.bks";
-//            XMPPApplication.configuration.setKeystorePath(path);
-//        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+        XMPPApplication.configuration.setTruststoreType("AndroidCAStore");
+        XMPPApplication.configuration.setTruststorePassword(null);
+        XMPPApplication.configuration.setTruststorePath(null);
+    } else {
+            XMPPApplication.configuration.setTruststoreType("BKS");
+        String path = System.getProperty("javax.net.ssl.trustStore");
+        if (path == null)
+            path = System.getProperty("java.home") + File.separator + "etc"
+                    + File.separator + "security" + File.separator
+                    + "cacerts.bks";
+            XMPPApplication.configuration.setTruststorePath(path);
+    }
 //        XMPPApplication.configuration.setCustomSSLContext(createContext());
 //        SASLAuthentication.registerSASLMechanism("PLAIN", SASLPlainMechanism.class);
         SASLAuthentication.supportSASLMechanism("PLAIN");
