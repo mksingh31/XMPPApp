@@ -4,8 +4,8 @@
     <string name="app_name">XMPPApplication</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="host">chat.vaporchat.com</string>
-    <string name="port">5223</string>
+    <string name="host">test.vaporchat.com</string>
+    <string name="port">5222</string>
     <string name="title_activity_login">Login</string>
     <string name="mtm_accept_cert">Accept Unknown Certificate?</string>
     <string name="mtm_trust_anchor">The server certificate is not signed by a known Certificate Authority.</string>
